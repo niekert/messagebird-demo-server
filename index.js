@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const http = require('http');
 const url = require('url');
 const WebSocket = require('ws');
@@ -8,6 +9,7 @@ const proxy = require('express-http-proxy');
 const MESSAGEBIRD_API_KEY = process.env.MESSAGEBIRD_API_KEY;
 
 const app = express();
+app.use(cors());
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
