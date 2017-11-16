@@ -14,7 +14,6 @@ const app = express();
 
 // TODO: We should probably not whitelist every domain for CORS, but for now it's OK.
 app.use(cors());
-app.use(bodyParser.json());
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -25,7 +24,7 @@ app.use('*', (req, res, next) => {
   // TODO: Hacky way to not block requests where we receive the message callback from the
   // Messagebird API. Instead of doing this we should probably check the host domain from which
   // The request was received
-  if (req.originalUrl === '/message') {
+  if (req.baseUrl === '/message') {
     next();
     return;
   }
@@ -60,15 +59,25 @@ app.get('/authenticate', (req, res) => {
   res.sendStatus(200);
 });
 
-app.post('/message', (req, res) => {
-  const body = req.body;
+app.get('/message', (req, res) => {
+  const message = req.query;
 
-  console.log('received a post', body);
-  // TODO: We should probably do a more thorough check here before sending it
-  if (body.type === 'sms') {
+  if (message.id) {
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ type: 'message', data: body }));
+        // We send simplified representation of a message
+        client.send(
+          JSON.stringify({
+            type: 'message',
+            data: {
+              id: message.id,
+              direction: 'mo',
+              recipient: message.recipient,
+              body: message.body,
+              originator: message.originator
+            }
+          })
+        );
       }
     });
   }
