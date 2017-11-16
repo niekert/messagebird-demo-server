@@ -7,6 +7,7 @@ const WebSocket = require('ws');
 const proxy = require('express-http-proxy');
 
 const MESSAGEBIRD_API_KEY = process.env.MESSAGEBIRD_API_KEY;
+const ALLOWED_ACCESS_KEY = process.env.ALLOWED_ACCESS_KEY;
 
 const app = express();
 app.use(cors());
@@ -29,6 +30,18 @@ app.use(
     }
   })
 );
+
+// Super basic way to ensure request sent without the accesKey in the
+// authorization header is denied
+app.use('/', (req, res, next) => {
+  const accessKey = req.headers.authorization;
+  console.log('access', accessKey, ALLOWED_ACCESS_KEY);
+  if (accessKey !== `AccessKey ${ALLOWED_ACCESS_KEY}`) {
+    res.send(401);
+  }
+
+  next();
+});
 
 server.listen(process.env.PORT || 8080, () => {
   console.log('Listening on %d', server.address().port);
