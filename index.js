@@ -63,6 +63,7 @@ app.get('/authenticate', (req, res) => {
 app.post('/message', (req, res) => {
   const body = req.body;
 
+  console.log('received a post', body);
   // TODO: We should probably do a more thorough check here before sending it
   if (body.type === 'sms') {
     wss.clients.forEach(function each(client) {
